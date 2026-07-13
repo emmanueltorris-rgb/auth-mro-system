@@ -7,13 +7,6 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    allowedHosts: true, // Bypasses the Render domain block completely
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:5000',
-        changeOrigin: true,
-        secure: false,
-      }
-    }
+    allowedHosts: true
   }
 })

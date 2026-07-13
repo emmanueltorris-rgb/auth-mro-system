@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+// Dynamically sets the backend URL based on Render environment variable or falls back to production link
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://devdiary-backend-betk.onrender.com";
+
 export default function App() {
   const [view, setView] = useState('login'); // active states: login, signup, dashboard
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -18,7 +21,7 @@ export default function App() {
   // Combined function handling backend Login and Sign Up endpoints
   const handleAuthSubmit = async (endpoint) => {
     try {
-      const res = await fetch(`/api/auth/${endpoint}`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(authForm)
@@ -47,37 +50,49 @@ export default function App() {
   // RESTful GET Route: Protected user notes data
   const fetchUserNotes = async () => {
     if (!token) return;
-    const res = await fetch('/api/notes', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (res.ok) setNotes(data);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/notes`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) setNotes(data);
+    } catch (err) {
+      console.error("Error fetching private logs:", err);
+    }
   };
 
   // RESTful GET Route: Public exposed notes data accessible without token
   const fetchPublicNotes = async () => {
-    const res = await fetch('/api/notes/public');
-    const data = await res.json();
-    if (res.ok) setPublicNotes(data);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/notes/public`);
+      const data = await res.json();
+      if (res.ok) setPublicNotes(data);
+    } catch (err) {
+      console.error("Error fetching public feed:", err);
+    }
   };
 
   // RESTful POST Route: Protected creation route
   const handleCreateNote = async (e) => {
     e.preventDefault();
-    const res = await fetch('/api/notes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(noteForm)
-    });
-    if (res.ok) {
-      setNoteForm({ title: '', content: '' });
-      fetchUserNotes();
-    } else {
-      const errorData = await res.json();
-      alert(errorData.message);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(noteForm)
+      });
+      if (res.ok) {
+        setNoteForm({ title: '', content: '' });
+        fetchUserNotes();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message);
+      }
+    } catch (err) {
+      alert("Failed to save log entry.");
     }
   };
 
