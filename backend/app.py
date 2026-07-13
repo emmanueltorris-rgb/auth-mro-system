@@ -98,6 +98,10 @@ def get_user_notes(current_user):
     return jsonify([note.to_dict() for note in notes]), 200
 
 if __name__ == '__main__':
+    import os
     with app.app_context():
-        db.create_all()  # Generates sqlite database file automatically
-    app.run(debug=True, port=5000)
+        db.create_all() # Generates sqlite database file automatically
+    
+    # Render binds dynamic ports; fallback to 5000 locally
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
